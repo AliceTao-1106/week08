@@ -177,10 +177,10 @@ jobs:
 
       - name: Pin images by SHA
         run: |
-          kubectl set image deployment/product-service-deploy product=${{ env.ACR_LOGIN_SERVER }}/product_service:${{ env.IMAGE_TAG }}
-          kubectl set image deployment/order-service-deploy   order=${{ env.ACR_LOGIN_SERVER }}/order_service:${{ env.IMAGE_TAG }}
-          kubectl rollout status deployment/product-service-deploy
-          kubectl rollout status deployment/order-service-deploy
+          kubectl set image deployment/${{ env.PRODUCT_SVC }} product=${{ env.ACR_LOGIN_SERVER }}/product_service:${{ env.IMAGE_TAG }}
+          kubectl set image deployment/${{ env.ORDER_SVC }}   order=${{ env.ACR_LOGIN_SERVER }}/order_service:${{ env.IMAGE_TAG }}
+          kubectl rollout status deployment/${{ env.PRODUCT_SVC }}
+          kubectl rollout status deployment/${{ env.ORDER_SVC }}
 
       - name: Wait for Backend LoadBalancer IPs
         run: |
