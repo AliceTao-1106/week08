@@ -210,7 +210,7 @@ jobs:
             fi
             sleep 5
           done
-          [[ -z "$PRODUCT_IP" || -z "$ORDER_IP" ]] && { echo "IPs not assigned in time"; exit 1; }
+          if [[ -z "$PRODUCT_IP" || -z "$ORDER_IP" ]]; then echo "IPs not assigned in time"; exit 1; fi
 
       - id: get_product_ip
         run: echo "external_ip=${{ env.PRODUCT_IP }}" >> $GITHUB_OUTPUT
