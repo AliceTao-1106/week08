@@ -9,17 +9,14 @@ on:
   repository_dispatch:
     types: [trigger-frontend-ci]
   pull_request:
-    branches: [main, development]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend_ci.yml'
+    branches:
+      - main
+      - development
   push:
-    branches: [main, development]
-    paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend_ci.yml'
+    branches:
+      - main
+      - development
 
-# Define global environment variables that can be used across jobs
 env:
   ACR_LOGIN_SERVER: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
   IMAGE_TAG: ${{ github.sha }}-${{ github.run_id }}
@@ -30,16 +27,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Login to Azure Container Registry
         run: az acr login --name ${{ env.ACR_LOGIN_SERVER }}
+
       - name: Build and Push Frontend Image
         run: |
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:latest ./frontend/
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ./frontend/
+          docker tag ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ${{ env.ACR_LOGIN_SERVER }}/frontend:latest
+          docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:latest
+
       - name: Logout from Azure
         run: az logout
         if: always()
