@@ -10,16 +10,10 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [main, development]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend_ci.yml'
 
-  # Automatically on pushes to main branch
   push:
-    branches: [development]
-    paths: # Only trigger if changes are in backend directories
-      - 'backend/**'
-      - '.github/workflows/backend_ci.yml' # Trigger if this workflow file changes
+    branches: [main, development]
+
 
 # Define global environment variables that can be used across jobs
 env:
