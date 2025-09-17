@@ -176,11 +176,26 @@ jobs:
           kubectl apply -f k8s/order-service.yaml
 
       - name: Pin images by SHA
+        shell: bash
         run: |
-          kubectl set image deployment/${{ env.PRODUCT_SVC }} product=${{ env.ACR_LOGIN_SERVER }}/product_service:${{ env.IMAGE_TAG }}
-          kubectl set image deployment/${{ env.ORDER_SVC }}   order=${{ env.ACR_LOGIN_SERVER }}/order_service:${{ env.IMAGE_TAG }}
-          kubectl rollout status deployment/${{ env.PRODUCT_SVC }}
-          kubectl rollout status deployment/${{ env.ORDER_SVC }}
+          set -euo pipefail
+
+          PROD_DEP="${{ env.PRODUCT_SVC }}"
+          ORD_DEP="${{ env.ORDER_SVC }}"
+
+          PROD_CTN=$(kubectl get deploy "$PROD_DEP" -o jsonpath='{.spec.template.spec.containers[0].name}')
+          ORD_CTN=$(kubectl get deploy "$ORD_DEP"  -o jsonpath='{.spec.template.spec.containers[0].name}')
+
+          echo "Product deployment : $PROD_DEP"
+          echo "Product container  : $PROD_CTN"
+          echo "Order   deployment : $ORD_DEP"
+          echo "Order   container  : $ORD_CTN"
+
+          kubectl set image deploy/"$PROD_DEP" "$PROD_CTN"=${{ env.ACR_LOGIN_SERVER }}/product_service:${{ env.IMAGE_TAG }}
+          kubectl set image deploy/"$ORD_DEP"  "$ORD_CTN"=${{ env.ACR_LOGIN_SERVER }}/order_service:${{ env.IMAGE_TAG }}
+
+          kubectl rollout status deploy/"$PROD_DEP" --timeout=5m
+          kubectl rollout status deploy/"$ORD_DEP"  --timeout=5m
 
       - name: Wait for Backend LoadBalancer IPs
         run: |
