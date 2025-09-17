@@ -119,10 +119,9 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Trigger Frontend CI Workflow
-        uses: peter-evans/workflow-dispatch@v1.2.0
+        uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          workflow: frontend_ci.yml
-          ref: ${{ github.ref }}
-
+          event-type: trigger-frontend-ci
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
