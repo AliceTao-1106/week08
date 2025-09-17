@@ -1,17 +1,21 @@
 # week08/.github/workflows/backend_ci.yml
 
-name: Backend CI - Test, Build and Push Images to ACR
+name: Backend CI - PR & Dev Test
 
 # Trigger the workflow on pushes to the 'main' branch
 # You can also add 'pull_request:' to run on PRs
 on:
   # Manual trigger
   workflow_dispatch:
+  pull_request:
+    branches: [main, development]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend_ci.yml'
 
   # Automatically on pushes to main branch
   push:
-    branches:
-      - main
+    branches: [development]
     paths: # Only trigger if changes are in backend directories
       - 'backend/**'
       - '.github/workflows/backend_ci.yml' # Trigger if this workflow file changes
@@ -20,7 +24,7 @@ on:
 env:
   # ACR Login Server (e.g., aliceregistry.azurecr.io)
   # This needs to be set as a GitHub Repository Secret
-  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  ACR_LOGIN_SERVER: ${{ secrets.AZURE_CONTAINER_REGISTRY }}
   # Dynamically generate image tags based on Git SHA and GitHub Run ID
   # This provides unique, traceable tags for each image build
   IMAGE_TAG: ${{ github.sha }}-${{ github.run_id }}
@@ -109,39 +113,16 @@ jobs:
         run: |
           pytest tests --maxfail=1 --disable-warnings -q
 
-  # Job 2: Build and Push Docker Images (runs only if tests pass)
-  build_and_push_images:
-    runs-on: ubuntu-latest
+  trigger_frontend_ci:
     needs: test_and_lint_backends
-
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    # Azure login using a Service Principal secret
-    - name: Azure Login
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }} # Needs to be set as a GitHub Secret (Service Principal JSON)
-
-    # Login to Azure Container Registry (ACR)
-    - name: Login to Azure Container Registry
-      run: az acr login --name ${{ env.ACR_LOGIN_SERVER }}
-
-    # Build and Push Docker image for Product Service
-    - name: Build and Push Product Service Image
-      run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product_service:latest ./backend/product_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/product_service:latest
-
-    # Build and Push Docker image for Order Service
-    - name: Build and Push Order Service Image
-      run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order_service:latest ./backend/order_service/
-        docker push ${{ env.ACR_LOGIN_SERVER }}/order_service:latest
-
-    # Logout from Azure for security (runs even if image push fails)
-    - name: Logout from Azure
-      run: az logout
-      if: always()
+      - name: Trigger Frontend CI Workflow
+        uses: peter-evans/workflow-dispatch@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          workflow: frontend_ci.yml
+          ref: ${{ github.ref }}
 
