@@ -2,10 +2,12 @@
 
 name: Frontend CI - Build & Push Image
 
-# Triggers: manual, push, pull_request, and reusable workflow_call
+# Triggers: manual, push, pull_request, repository_dispatch, and reusable workflow_call
 on:
   workflow_dispatch:
   workflow_call:
+  repository_dispatch:
+    types: [trigger-frontend-ci]
   pull_request:
     branches: [main, development]
     paths:
