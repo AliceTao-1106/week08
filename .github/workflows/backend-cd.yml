@@ -199,8 +199,8 @@ jobs:
 
       - name: Wait for Backend LoadBalancer IPs
         run: |
-          echo "Waiting up to 5 minutes for LB IPs..."
-          for i in $(seq 1 60); do
+          echo "Waiting up to 10 minutes for LB IPs..."
+          for i in $(seq 1 120); do
             PRODUCT_IP=$(kubectl get svc ${{ env.PRODUCT_SVC }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             ORDER_IP=$(kubectl get svc ${{ env.ORDER_SVC }}   -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             if [[ -n "$PRODUCT_IP" && -n "$ORDER_IP" ]]; then
@@ -227,7 +227,7 @@ jobs:
     with:
       product_api_ip: "http://${{ needs.deploy_backend.outputs.PRODUCT_API_IP }}:8000"
       order_api_ip:   "http://${{ needs.deploy_backend.outputs.ORDER_API_IP }}:8001"
-      aks_cluster_name: ${{ github.event.inputs.aks_cluster_name || 'default-aks-name' }}
-      aks_resource_group: ${{ github.event.inputs.aks_resource_group || 'default-rg-name' }}
+      aks_cluster_name: ${{ github.event.inputs.aks_cluster_name || secrets.AKS_CLUSTER_NAME }}
+      aks_resource_group: ${{ github.event.inputs.aks_resource_group || secrets.AKS_RESOURCE_GROUP }}
     secrets: inherit
 
