@@ -227,7 +227,7 @@ jobs:
     with:
       product_api_ip: "http://${{ needs.deploy_backend.outputs.PRODUCT_API_IP }}:8000"
       order_api_ip:   "http://${{ needs.deploy_backend.outputs.ORDER_API_IP }}:8001"
-      aks_cluster_name: ${{ github.event.inputs.aks_cluster_name || secrets.AKS_CLUSTER_NAME }}
-      aks_resource_group: ${{ github.event.inputs.aks_resource_group || secrets.AKS_RESOURCE_GROUP }}
+      aks_cluster_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.aks_cluster_name || vars.AKS_CLUSTER_NAME }}
+      aks_resource_group: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.aks_resource_group || vars.AKS_RESOURCE_GROUP }}
     secrets: inherit
 
